@@ -11,6 +11,9 @@ namespace SimpleSerial {
         struct Saver {
             pugi::xml_node _node;
 
+            Saver(Document const& doc) : _node(doc.root()) {}
+            Saver(pugi::xml_node node) : _node(node) {}
+
             template <typename T> Saver& operator&(T const& value) {
                 do_save(_node, value);
                 return *this;

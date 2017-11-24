@@ -1,0 +1,10 @@
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+compile_commands.json
+demo
+output.txt
+test-pugi.xml
+test-ptree.xml
+test-ptree.json

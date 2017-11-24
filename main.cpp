@@ -1,71 +1,35 @@
 #include <iostream>
-#include <vector>
+#include "test/tester.hpp"
 
-#include <simpleserial/frontend.hpp>
-#define NVP(v)        ::SimpleSerial::Frontend::make_nvp(#v, v)
-#define NCP(v, inner) ::SimpleSerial::Frontend::make_ncp(#v, inner, v)
+void run_pugi_backend(); // using PugiXML
+void run_ptree_backends(); // both xml and json
 
-struct HardwareDto {
-    int HardwareHostID;
-    int HardwareID;
-    std::string HardwareFriendlyName;
-
-    template <typename Ar> void serialize(Ar& ar) {
-        ar & NVP(HardwareHostID)
-           & NVP(HardwareID)
-           & NVP(HardwareFriendlyName);
-    }
-};
-
-struct HardwareHostDto {
-    int HardwareHostID;
-    int BranchID;
-    std::string HardwareHostFriendlyName;
-    std::vector<HardwareDto> HardwareList;
-
-    template <typename Ar> void serialize(Ar& ar) {
-        ar & NVP(HardwareHostID)
-           & NVP(BranchID)
-           & NVP(HardwareHostFriendlyName)
-           & NCP(HardwareList, "Hardware");
-    }
-};
+int main() {
+    run_pugi_backend();
+    run_ptree_backends();
+}
 
 #include <simpleserial/backend/pugi_backend.hpp>
 
-int main() {
-    using SimpleSerial::Frontend::make_nvp;
+void run_pugi_backend()  { // using PugiXML
+    using namespace SimpleSerial::PugiBackend;
+    Tester<Document, Saver, Loader> tester;
 
-    {
-        using namespace SimpleSerial::PugiBackend;
+    tester.roundtrip([](Document& doc) { doc.save_file("test-pugi.xml"); },
+                     [](Document& doc) { doc.load_file("test-pugi.xml"); });
+}
 
-        Document doc;
-        Saver saver{doc.root()};
+#include <simpleserial/backend/ptree_backend.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 
-        HardwareHostDto host = { 1, 1, "kiosk", { { 1, 2, "friendly" } } };
-        saver & make_nvp("HardwareHost", host);
+void run_ptree_backends() { // both xml and json
+    using namespace SimpleSerial::PtreeBackend;
+    Tester<Document, Saver, Loader> tester;
 
-        doc.save_file("test.xml");
-    }
+    tester.roundtrip([](Document& pt) { write_json("test-ptree.json", pt); },
+                     [](Document& pt) { read_json("test-ptree.json", pt); });
 
-    {
-        using namespace SimpleSerial::PugiBackend;
-
-        HardwareHostDto roundtrip;
-        {
-            Document doc;
-            doc.load_file("test.xml");
-
-            Loader loader{doc};
-
-            loader & make_nvp("HardwareHost", roundtrip);
-        }
-
-        std::cout << "Read back: " << roundtrip.HardwareHostID << "\n";
-        std::cout << "Read back: " << roundtrip.BranchID << "\n";
-        std::cout << "Read back: " << roundtrip.HardwareHostFriendlyName << "\n";
-        for (auto& h: roundtrip.HardwareList) {
-            std::cout << "Item: " << h.HardwareID << ", " << h.HardwareHostID << ", " << h.HardwareFriendlyName << "\n";
-        }
-    }
+    tester.roundtrip([](Document& pt) { write_xml("test-ptree.xml", pt); },
+                     [](Document& pt) { read_xml("test-ptree.xml",   pt); });
 }
