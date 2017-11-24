@@ -5,6 +5,7 @@ ADD_EXECUTABLE(demo main.cpp)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
     -Wall -Wextra -pedantic \
+    -I. \
     -std=c++14 \
     -fsanitize=address,undefined \
     -O2 -g -pthread -march=native")
