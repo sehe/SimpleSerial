@@ -3,9 +3,11 @@
 
 void run_pugi_backend(); // using PugiXML
 void run_ptree_backends(); // both xml and json
+void run_libxml2_backend(); // using libXml2
 
 int main() {
     run_pugi_backend();
+    run_libxml2_backend();
     run_ptree_backends();
 }
 
@@ -17,6 +19,18 @@ void run_pugi_backend()  { // using PugiXML
 
     tester.roundtrip([](Document& doc) { doc.save_file("test-pugi.xml"); },
                      [](Document& doc) { doc.load_file("test-pugi.xml"); });
+}
+
+#include <simpleserial/backend/libxml2_backend.hpp>
+
+void run_libxml2_backend()  { // using PugiXML
+    using namespace SimpleSerial::LibXml2Backend;
+    Tester<Document, Saver, Loader> tester;
+
+    tester.roundtrip(
+            [](Document& doc) { doc.write_to_file("test-libxml2.xml"); },
+            [](Document& doc) { doc.parse_file("test-libxml2.xml"); }
+        );
 }
 
 #include <simpleserial/backend/ptree_backend.hpp>

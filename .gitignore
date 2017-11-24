@@ -8,3 +8,4 @@ output.txt
 test-pugi.xml
 test-ptree.xml
 test-ptree.json
+test-libxml2.xml
